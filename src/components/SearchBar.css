@@ -1,0 +1,12 @@
+.search-input {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    outline: none;
+    transition: border 0.3s;
+  }
+  
+  .search-input:focus, .search-input:hover {
+    border: 2px solid #ff4b1f;
+  }
+  
