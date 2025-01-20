@@ -1,22 +1,22 @@
 syntax = "proto3";
 
-service QuestionService {
-  rpc searchQuestions(SearchRequest) returns (SearchResponse);
+package search;
+
+service SearchService {
+  rpc GetQuestions (SearchRequest) returns (SearchResponse);
 }
 
 message SearchRequest {
-  string searchTerm = 1;
-  string category = 2;
-  int32 page = 3;
+  string category = 1;
 }
 
 message SearchResponse {
   repeated Question questions = 1;
-  int32 totalCount = 2;
 }
 
 message Question {
-  string questionId = 1;
-  string questionText = 2;
-  string category = 3;
+  string id = 1;
+  string type = 2;
+  string title = 3;
+  string solution = 4;
 }
