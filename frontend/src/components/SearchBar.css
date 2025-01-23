@@ -1,0 +1,33 @@
+.search-input {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    outline: none;
+    transition: border 0.3s;
+  }
+  
+  .search-input:focus, .search-input:hover {
+    border: 2px solid #ff4b1f;
+  }
+  
+  .category-button {
+    background-color: white;
+    color: grey;
+    font-weight: bold;
+    border: 1px solid grey;
+    padding: 6px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .category-button:hover {
+    background-color: #f3a776; /* Light orange color on hover */
+    color: white;
+  }
+  
+  .category-button.active {
+    background-color: #ff4b1f; /* Active state with red background */
+    color: white;
+  }
+  

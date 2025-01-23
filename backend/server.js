@@ -1,57 +1,54 @@
-const grpc = require('grpc');
-const protoLoader = require('@grpc/proto-loader');
+const express = require('express');
 const mongoose = require('mongoose');
-const path = require('path');
+const cors = require('cors');
+const app = express();
+const port = 5000;
 
-// Load the .proto file
-const PROTO_PATH = path.join(__dirname, 'search.proto');
-const packageDefinition = protoLoader.loadSync(PROTO_PATH);
-const proto = grpc.loadPackageDefinition(packageDefinition);
+app.use(cors()); // Enable CORS for frontend
+app.use(express.json()); // For parsing JSON requests
 
-// MongoDB connection and model
-mongoose.connect('mongodb://localhost:27017/SpeakX', { useNewUrlParser: true, useUnifiedTopology: true });
-const Question = mongoose.model('Question', {
-  questionText: String,
-  category: String
+// MongoDB connection string (replace with your actual password)
+const mongoURI = "mongodb+srv://arora99:Asca99*+@shivamarora99.aiuceoc.mongodb.net/SpeakX?retryWrites=true&w=majority";
+
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+
+// Define a schema and model for Questions
+const questionSchema = new mongoose.Schema({
+  title: String,
+  type: String,
+  anagramType: String,
+  blocks: [
+    {
+      text: String,
+      showInOption: Boolean,
+      isAnswer: Boolean
+    }
+  ],
+  siblingId: String,
+  solution: String
 });
 
-// Search function with pagination
-function searchQuestions(call, callback) {
-  const { searchTerm, category, page } = call.request;
-  const skip = (page - 1) * 5;
+const Question = mongoose.model('Question', questionSchema);
 
-  const query = category ? { questionText: { $regex: searchTerm, $options: 'i' }, category } : { questionText: { $regex: searchTerm, $options: 'i' } };
+// Search Route
+app.get('/api/search', async (req, res) => {
+  try {
+    const { query } = req.query;
 
-  Question.find(query)
-    .skip(skip)
-    .limit(5)
-    .exec((err, questions) => {
-      if (err) {
-        callback(err);
-      } else {
-        Question.countDocuments(query, (err, totalCount) => {
-          if (err) {
-            callback(err);
-          } else {
-            callback(null, {
-              questions: questions.map((q) => ({
-                questionId: q._id,
-                questionText: q.questionText,
-                category: q.category
-              })),
-              totalCount
-            });
-          }
-        });
-      }
-    });
-}
+    // Fetch questions with all fields including 'blocks'
+    const questions = await Question.find({ title: { $regex: query, $options: 'i' } })
+      .limit(5); // Get first 5 results
 
-// Create the gRPC server
-const server = new grpc.Server();
-server.addService(proto.QuestionService.service, { searchQuestions });
+    res.json(questions);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).send('Server Error');
+  }
+});
 
 // Start the server
-server.bind('localhost:50051', grpc.ServerCredentials.createInsecure());
-console.log('Server running at http://localhost:50051');
-server.start();
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
