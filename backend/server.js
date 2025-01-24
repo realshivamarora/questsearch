@@ -50,7 +50,7 @@ app.get('/api/search', async (req, res) => {
       filter.type = category;
     }
 
-    let questions = await Question.find(filter).limit(25);
+    let questions = await Question.find(filter).limit(50);
 
     questions = questions.map((question) => {
       if (question.type === 'Anagrams' && question.blocks) {
