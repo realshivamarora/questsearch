@@ -1,3 +1,6 @@
+![image](https://github.com/user-attachments/assets/80861bc1-fa5b-47c3-8cf0-3954ea296457)
+
+
 # Question Library Project
 
 A full-stack web application designed and developed to handle a **large question library** with efficient search functionality and unique handling of multiple question types, including **MCQs**, **Anagrams**, and **Read Along**. This project is built with **React** on the frontend, and **Node.js** with **MongoDB Atlas** on the backend.
@@ -93,6 +96,7 @@ node server.js
    `npm start`
 
 Note: Rememeber to replace server to http://localhost:3000 in SearchBar.js component while completing compiling the project, to run the project on localhost on port 3000.
+Note: Replace phone number, email and others to yours while implementing in Footer.
 
 4. Access the application at http://localhost:3000.
 
