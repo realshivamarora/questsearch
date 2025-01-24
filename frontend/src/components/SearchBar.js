@@ -16,7 +16,7 @@ function SearchBar({ onSearch }) {
       if (searchTerm) queryParams.append('query', searchTerm);
       if (category) queryParams.append('category', category);
 
-      const response = await axios.get(`https://questsearch.onrender.com/api/search?${queryParams.toString()}`);
+      const response = await axios.get(`abc.com/api/search?${queryParams.toString()}`);
       onSearch(response.data); 
     } catch (error) {
       console.error('Error fetching search results:', error);
