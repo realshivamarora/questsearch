@@ -22,12 +22,12 @@
   }
   
   .category-button:hover {
-    background-color: #f3a776; /* Light orange color on hover */
+    background-color: #f3a776; 
     color: white;
   }
   
   .category-button.active {
-    background-color: #ff4b1f; /* Active state with red background */
+    background-color: #ff4b1f; 
     color: white;
   }
   

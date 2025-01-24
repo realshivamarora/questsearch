@@ -4,7 +4,7 @@ import { Button } from 'react-bootstrap';
 
 function SearchBar({ onSearch }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [category, setCategory] = useState(''); // Track the selected category
+  const [category, setCategory] = useState(''); 
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -12,31 +12,29 @@ function SearchBar({ onSearch }) {
 
   const handleSearchClick = async () => {
     try {
-      // Construct the query string dynamically based on search term and category
       const queryParams = new URLSearchParams();
       if (searchTerm) queryParams.append('query', searchTerm);
       if (category) queryParams.append('category', category);
 
       const response = await axios.get(`http://localhost:5000/api/search?${queryParams.toString()}`);
-      onSearch(response.data); // Send results to App.js
+      onSearch(response.data); 
     } catch (error) {
       console.error('Error fetching search results:', error);
     }
   };
 
   const handleCategoryChange = (cat) => {
-    setCategory(cat); // Update the category based on selection
+    setCategory(cat); 
   };
 
   const getButtonStyle = (cat) => {
     return cat === category
-      ? { backgroundColor: '#ff4b1f', color: 'white', border: 'none' } // Selected button style
-      : { backgroundColor: 'white', color: '#888', border: '1px solid #ccc' }; // Default button style
+      ? { backgroundColor: '#ff4b1f', color: 'white', border: 'none' } 
+      : { backgroundColor: 'white', color: '#888', border: '1px solid #ccc' };
   };
 
   return (
     <div style={searchBarContainerStyle} className="container p-4 d-flex justify-content-between">
-      {/* Left Side: Search Field */}
       <div className="d-flex align-items-center">
         <input
           type="text"
@@ -48,7 +46,6 @@ function SearchBar({ onSearch }) {
         <Button onClick={handleSearchClick} style={searchButtonStyle} className="ms-2">Search</Button>
       </div>
 
-      {/* Right Side: Category Buttons */}
       <div className="d-flex align-items-center">
         <Button onClick={() => handleCategoryChange('MCQ')} style={getButtonStyle('MCQ')} className="ms-2">MCQs</Button>
         <Button onClick={() => handleCategoryChange('ANAGRAM')} style={getButtonStyle('ANAGRAM')} className="ms-2">Anagrams</Button>

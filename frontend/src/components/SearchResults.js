@@ -10,7 +10,6 @@ function SearchResults({ results }) {
   const [anagramSelections, setAnagramSelections] = useState({});
   const [shuffledBlocks, setShuffledBlocks] = useState({});
 
-  // Shuffle utility for Anagram blocks
   function shuffleArray(array) {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -20,7 +19,6 @@ function SearchResults({ results }) {
     return shuffled;
   }
 
-  // Shuffle blocks for each question only once
   useEffect(() => {
     const initialShuffledBlocks = {};
     results.forEach((question) => {
@@ -31,14 +29,12 @@ function SearchResults({ results }) {
     setShuffledBlocks(initialShuffledBlocks);
   }, [results]);
 
-  // Handle text-to-speech for READ_ALONG questions
   const speakText = (text) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
     window.speechSynthesis.speak(utterance);
   };
 
-  // Handle MCQ option click
   const handleOptionClick = (questionId, selectedOption) => {
     setSelectedOptions((prevState) => ({
       ...prevState,
@@ -46,7 +42,6 @@ function SearchResults({ results }) {
     }));
   };
 
-  // Handle Anagram block click
   const handleAnagramClick = (questionId, blockIndex) => {
     setAnagramSelections((prevState) => {
       const currentSelection = prevState[questionId] || [];
@@ -55,7 +50,6 @@ function SearchResults({ results }) {
     });
   };
 
-  // Reset Anagram selections
   const resetAnagram = (questionId) => {
     setAnagramSelections((prevState) => ({
       ...prevState,
@@ -71,7 +65,6 @@ function SearchResults({ results }) {
     });
   };
 
-  // Check Anagram Solution
   const checkAnagramSolution = (questionId) => {
     const selections = anagramSelections[questionId] || [];
     const question = results.find((q) => q._id === questionId);
@@ -85,13 +78,12 @@ function SearchResults({ results }) {
     return selectedText === question.solution;
   };
 
-  // Determine button style based on selection and correctness
   const getOptionStyle = (option, questionId) => {
     const selectedAnswer = selectedOptions[questionId];
     if (selectedAnswer) {
       if (option.isCorrectAnswer && selectedAnswer.text === option.text) {
         return {
-          backgroundColor: '#28a745', // Green
+          backgroundColor: '#28a745', 
           color: 'white',
           transition: 'all 0.3s ease',
           height: '50px'
@@ -99,14 +91,14 @@ function SearchResults({ results }) {
       }
       if (!option.isCorrectAnswer && selectedAnswer.text === option.text) {
         return {
-          backgroundColor: '#dc3545', // Red
+          backgroundColor: '#dc3545', 
           color: 'white',
           transition: 'all 0.3s ease',
           height: '50px'
         };
       }
       return {
-        color: 'grey', // Light grey for unselected options
+        color: 'grey', 
         backgroundColor: 'white',
         border: '1px solid grey',
         transition: 'all 0.3s ease',
@@ -114,15 +106,14 @@ function SearchResults({ results }) {
       };
     }
     return {
-      color: 'black', // Default black text
+      color: 'black', 
       backgroundColor: 'white',
       border: '1px solid grey',
       fontWeight: 'bold',
-      height: '50px', // Increased button height
+      height: '50px', 
     };
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(results.length / questionsPerPage);
   const paginatedResults = results.slice(
     (currentPage - 1) * questionsPerPage,
@@ -239,7 +230,6 @@ function SearchResults({ results }) {
         ))}
       </Row>
 
-      {/* Pagination */}
 <Pagination className="justify-content-center mt-4 custom-pagination">
   {[...Array(totalPages)].map((_, pageIndex) => (
     <Pagination.Item

@@ -3,21 +3,20 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaPhoneAlt, FaWhatsapp, FaEnvelope, FaGlobe } from 'react-icons/fa';
 
 function Footer() {
-  // Define the contact methods
   const handleCall = () => {
-    window.location.href = "tel:+919815366293"; // Replace with actual phone number
+    window.location.href = "tel:+919815366293"; 
   };
 
   const handleWhatsApp = () => {
-    window.location.href = "https://wa.me/+919815366293"; // Replace with actual WhatsApp number
+    window.location.href = "https://wa.me/+919815366293"; 
   };
 
   const handleMail = () => {
-    window.location.href = "mailto:shivam.arora.contact@gmail.com"; // Replace with actual email address
+    window.location.href = "mailto:shivam.arora.contact@gmail.com"; 
   };
 
   const handleWebsite = () => {
-    window.location.href = "https://aroratech.tech"; // Replace with your website URL
+    window.location.href = "https://aroratech.tech"; 
   };
 
   return (
