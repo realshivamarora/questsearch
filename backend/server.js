@@ -7,7 +7,7 @@ const port = 5000;
 app.use(cors());
 app.use(express.json());
 
-const mongoURI = "xyz";
+const mongoURI = "mongodb+srv://arora99:Asca99*+@shivamarora99.aiuceoc.mongodb.net/SpeakX?retryWrites=true&w=majority";
 
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
