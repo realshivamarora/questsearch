@@ -7,7 +7,7 @@ const port = 5000;
 app.use(cors()); // Enable CORS for frontend
 app.use(express.json()); // For parsing JSON requests
 
-// MongoDB connection string (replace with your actual password)
+// MongoDB connection string
 const mongoURI = "mongodb+srv://arora99:Asca99*+@shivamarora99.aiuceoc.mongodb.net/SpeakX?retryWrites=true&w=majority";
 
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -32,16 +32,41 @@ const questionSchema = new mongoose.Schema({
 
 const Question = mongoose.model('Question', questionSchema);
 
-// Search Route
+// Utility function to shuffle an array
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// Search Route with fixed block shuffling
 app.get('/api/search', async (req, res) => {
   try {
-    const { query } = req.query;
+    const { query, category } = req.query;
 
-    // Fetch questions with all fields including 'blocks'
-    const questions = await Question.find({ title: { $regex: query, $options: 'i' } })
-      .limit(5); // Get first 5 results
+    const filter = {};
+    if (query) {
+      filter.title = { $regex: query, $options: 'i' }; // Match by title
+    }
+    if (category) {
+      filter.type = category; // Filter by selected category (MCQs, Anagrams, or Read Along)
+    }
 
-    res.json(questions);
+    // Fetch questions matching the filter
+    let questions = await Question.find(filter).limit(50);
+
+    // Shuffle the blocks for anagrams
+    questions = questions.map((question) => {
+      if (question.type === 'Anagrams' && question.blocks) {
+        // Shuffle blocks for anagram type questions
+        question.blocks = shuffleArray(question.blocks); 
+      }
+      return question;
+    });
+
+    res.json(questions); // Send the results to the frontend
   } catch (err) {
     console.error('Error:', err);
     res.status(500).send('Server Error');

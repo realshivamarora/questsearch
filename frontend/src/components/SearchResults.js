@@ -1,13 +1,46 @@
-import React, { useState } from 'react';
-import { Card, Row, Col, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import './SearchResults.css';
+import { Card, Row, Col, Button, Pagination } from 'react-bootstrap';
 
 function SearchResults({ results }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const questionsPerPage = 5;
+
   const [selectedOptions, setSelectedOptions] = useState({});
   const [anagramSelections, setAnagramSelections] = useState({});
+  const [shuffledBlocks, setShuffledBlocks] = useState({});
+
+  // Shuffle utility for Anagram blocks
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  // Shuffle blocks for each question only once
+  useEffect(() => {
+    const initialShuffledBlocks = {};
+    results.forEach((question) => {
+      if (question.type === 'ANAGRAM' && question.blocks) {
+        initialShuffledBlocks[question._id] = shuffleArray(question.blocks);
+      }
+    });
+    setShuffledBlocks(initialShuffledBlocks);
+  }, [results]);
+
+  // Handle text-to-speech for READ_ALONG questions
+  const speakText = (text) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Handle MCQ option click
   const handleOptionClick = (questionId, selectedOption) => {
-    setSelectedOptions(prevState => ({
+    setSelectedOptions((prevState) => ({
       ...prevState,
       [questionId]: selectedOption,
     }));
@@ -15,7 +48,7 @@ function SearchResults({ results }) {
 
   // Handle Anagram block click
   const handleAnagramClick = (questionId, blockIndex) => {
-    setAnagramSelections(prevState => {
+    setAnagramSelections((prevState) => {
       const currentSelection = prevState[questionId] || [];
       const newSelection = [...currentSelection, blockIndex];
       return { ...prevState, [questionId]: newSelection };
@@ -23,139 +56,201 @@ function SearchResults({ results }) {
   };
 
   // Reset Anagram selections
-  const resetAnagram = questionId => {
-    setAnagramSelections(prevState => ({
+  const resetAnagram = (questionId) => {
+    setAnagramSelections((prevState) => ({
       ...prevState,
       [questionId]: [],
     }));
   };
 
-  // Check if the Anagram solution is correct
+  const resetMCQ = (questionId) => {
+    setSelectedOptions((prevState) => {
+      const updatedState = { ...prevState };
+      delete updatedState[questionId];
+      return updatedState;
+    });
+  };
+
+  // Check Anagram Solution
   const checkAnagramSolution = (questionId) => {
     const selections = anagramSelections[questionId] || [];
-    const question = results.find(q => q._id === questionId);
+    const question = results.find((q) => q._id === questionId);
     if (!question) return false;
 
-    // If it's a word anagram, do not add spaces between the selected blocks
-    if (question.type === 'ANAGRAM' && question.anagramType === 'WORD') {
-      const selectedText = selections
-        .map(index => question.blocks[index].text)
-        .join(''); // No space for word anagram
-      return selectedText === question.solution;
-    }
-
-    // If it's a sentence anagram, add spaces between the selected blocks
     const selectedText = selections
-      .map(index => question.blocks[index].text)
-      .join(' ') // Add space for sentence anagram
-      .trim(); // Trim the final result to avoid extra spaces at the end
+      .map((index) => shuffledBlocks[questionId][index].text)
+      .join(question.anagramType === 'WORD' ? '' : ' ')
+      .trim();
 
     return selectedText === question.solution;
   };
 
+  // Determine button style based on selection and correctness
   const getOptionStyle = (option, questionId) => {
     const selectedAnswer = selectedOptions[questionId];
     if (selectedAnswer) {
       if (option.isCorrectAnswer && selectedAnswer.text === option.text) {
-        return { backgroundColor: 'green', color: 'white' };
+        return {
+          backgroundColor: '#28a745', // Green
+          color: 'white',
+          transition: 'all 0.3s ease',
+          height: '50px'
+        };
       }
       if (!option.isCorrectAnswer && selectedAnswer.text === option.text) {
-        return { backgroundColor: 'red', color: 'white' };
+        return {
+          backgroundColor: '#dc3545', // Red
+          color: 'white',
+          transition: 'all 0.3s ease',
+          height: '50px'
+        };
       }
+      return {
+        color: 'grey', // Light grey for unselected options
+        backgroundColor: 'white',
+        border: '1px solid grey',
+        transition: 'all 0.3s ease',
+        height: '50px'
+      };
     }
-    return { backgroundColor: '#ff4b1f', color: 'white' }; // Default background color
+    return {
+      color: 'black', // Default black text
+      backgroundColor: 'white',
+      border: '1px solid grey',
+      fontWeight: 'bold',
+      height: '50px', // Increased button height
+    };
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(results.length / questionsPerPage);
+  const paginatedResults = results.slice(
+    (currentPage - 1) * questionsPerPage,
+    currentPage * questionsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   if (results.length === 0) {
-    return <div>No results found</div>;
+    return (
+      <div style={{ textAlign: 'center', color: '#ff4b1f', fontStyle: 'italic' }}>
+        <p>Oops! No Question Found.</p>
+        <p style={{ fontSize: 'smaller' }}>Maybe try some other keyword</p>
+      </div>
+    );
   }
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4" style={{ paddingBottom: '100px', marginBottom: '100px'}}>
       <Row>
-        {results.map((question, index) => (
+        {paginatedResults.map((question, index) => (
           <Col key={question._id} xs={12} className="mb-4">
             <Card className="h-100">
               <Card.Body>
                 <Card.Title>
-                  <strong>Question {index + 1}: </strong>
+                  <strong>Question {index + 1 + (currentPage - 1) * questionsPerPage}: </strong>
                   {question.title}
                 </Card.Title>
 
-                {/* Displaying Anagram Blocks */}
-                {question.type === 'ANAGRAM' && question.blocks && (
-                  <div className="mt-3">
-                    <strong>Blocks:</strong>
-                    <div>
-                      {question.blocks.map((block, idx) => (
-                        <Button
-                          key={block._id || idx}
-                          className="p-2 m-1 border rounded"
-                          style={{
-                            backgroundColor: anagramSelections[question._id]?.includes(idx)
-                              ? '#d3d3d3'
-                              : '#007bff',
-                            color: 'white',
-                            display: block.showInOption ? 'inline-block' : 'none',
-                          }}
-                          disabled={anagramSelections[question._id]?.includes(idx)}
-                          onClick={() => handleAnagramClick(question._id, idx)}
-                        >
-                          {block.text}
-                        </Button>
-                      ))}
-                    </div>
-                    <div className="mt-2">
-                      <strong>Selected Order:</strong>{' '}
-                      {anagramSelections[question._id]
-                        ?.map(index => question.blocks[index].text)
-                        .join(' ')} {/* Join with space between words */}
-                      <br />
-                      <strong>Result:</strong>{' '}
-                      {anagramSelections[question._id]?.length === question.blocks.length
-                        ? checkAnagramSolution(question._id)
-                          ? 'Correct'
-                          : 'Wrong'
-                        : 'Incomplete'}
-                    </div>
-                    <Button
-                      variant="danger"
-                      className="mt-2"
-                      onClick={() => resetAnagram(question._id)}
-                    >
-                      Reset
+                {question.type === 'READ_ALONG' || question.type === 'CONTENT_ONLY' ? (
+                  <div>
+                    <p>{question.title}</p>
+                    <Button variant="primary" style={{ backgroundColor: '#ff4b1f', border: 'none' }} onClick={() => speakText(question.title)}>
+                      🔊 Speak
                     </Button>
                   </div>
-                )}
+                ) : (
+                  <>
+                    {question.type === 'ANAGRAM' && question.blocks && (
+                      <div className="mt-3">
+                        <strong>Blocks:</strong>
+                        <div>
+                          {(shuffledBlocks[question._id] || []).map((block, idx) => (
+                            <Button
+                              key={block._id || idx}
+                              className="p-2 m-1 border rounded"
+                              style={{
+                                backgroundColor: anagramSelections[question._id]?.includes(idx)
+                                  ? '#d3d3d3'
+                                  : '#ff4b1f',
+                                color: 'white',
+                              }}
+                              disabled={anagramSelections[question._id]?.includes(idx)}
+                              onClick={() => handleAnagramClick(question._id, idx)}
+                            >
+                              {block.text}
+                            </Button>
+                          ))}
+                        </div>
+                        <div className="mt-2">
+                          <strong>Selected Order:</strong>{' '}
+                          {anagramSelections[question._id]
+                            ?.map((index) => shuffledBlocks[question._id][index].text)
+                            .join(' ')}
+                          <br />
+                          <strong>Result:</strong>{' '}
+                          {anagramSelections[question._id]?.length === question.blocks.length
+                            ? checkAnagramSolution(question._id)
+                              ? 'Correct'
+                              : 'Wrong'
+                            : 'Incomplete'}
+                        </div>
+                        <Button
+                          variant="danger"
+                          className="mt-2"
+                          onClick={() => resetAnagram(question._id)}
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                    )}
 
-                {/* Displaying MCQ options */}
-                {question.type === 'MCQ' && question.options && (
-                  <div>
-                    {question.options.map((option, idx) => (
+                    {question.type === 'MCQ' && question.options && (
+                      <div>
+                      {question.options.map((option, idx) => (
+                        <Button
+                          key={idx}
+                          style={{
+                            ...getOptionStyle(option, question._id),
+                            height: '50px', // Increased height for buttons
+                          }}
+                          onClick={() => handleOptionClick(question._id, option)}
+                          className="mb-2 w-100"
+                        >
+                          {option.text}
+                        </Button>
+                      ))}
                       <Button
-                        key={idx}
-                        style={getOptionStyle(option, question._id)}
-                        onClick={() => handleOptionClick(question._id, option)}
-                        className="mb-2 w-100"
+                        variant="danger"
+                        className="mt-2 w-100"
+                        onClick={() => resetMCQ(question._id)}
                       >
-                        {option.text}
+                        Reset Selection
                       </Button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Displaying Read Along */}
-                {question.type === 'READ_ALONG' && (
-                  <div>
-                    <strong>Read Along Text:</strong>
-                    <p>{question.solution}</p>
-                  </div>
+                    </div>
+                    )}
+                  </>
                 )}
               </Card.Body>
             </Card>
           </Col>
         ))}
       </Row>
+
+      {/* Pagination */}
+<Pagination className="justify-content-center mt-4 custom-pagination">
+  {[...Array(totalPages)].map((_, pageIndex) => (
+    <Pagination.Item
+      key={pageIndex}
+      active={pageIndex + 1 === currentPage}
+      onClick={() => handlePageChange(pageIndex + 1)}
+    >
+      {pageIndex + 1}
+    </Pagination.Item>
+  ))}
+</Pagination>
     </div>
   );
 }
